@@ -113,18 +113,16 @@ public class AdminInsertGameController {
     @FXML
     void predict(ActionEvent event) {
     	ObservableList<String> genres;
-    	String descr = description.getText();
-    	
+    	String descr = description.getText();	
     	
     	//TO BE DONE, IS THE IMPLEMENTATION AT THE END
     	//genres= FXCollections.observableArrayList(GenrePredictionImplementation.predictGenres(descr));
-    	
     	
     	//USED TO TEST THE TRAINING, THIS CALL WILL BE REMOVED AT THE END
 		genres = FXCollections.observableArrayList(GenrePrediction.init(descr));
 
 		genresList.setItems(genres);
-	
+		
     }
     
 	public void initialize() {
