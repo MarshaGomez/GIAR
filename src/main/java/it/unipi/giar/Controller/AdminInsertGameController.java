@@ -11,6 +11,7 @@ import com.jfoenix.controls.JFXTextField;
 
 import javax.swing.SwingUtilities;
 
+import it.unipi.giar.GenrePrediction;
 import it.unipi.giar.Data.Game;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -18,6 +19,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
@@ -102,7 +104,23 @@ public class AdminInsertGameController {
 	
 	@FXML
     private JFXTextField metacritic;
+	
+    @FXML
+    private JFXButton predictionButton;
+    
+    
 
+    @FXML
+    void predict(ActionEvent event) {
+    	ObservableList<String> genres;
+    	
+    	String descr = description.getText();
+		genres = FXCollections.observableArrayList(GenrePrediction.init(descr));
+		//System.out.println(genres);
+		genresList.setItems(genres);
+		//System.out.println(genresList.getItems());
+    }
+    
 	public void initialize() {
 		final Runnable chargePlatforms = new Runnable() {
 			public void run() {

@@ -27,9 +27,9 @@ public class GiarGui extends Application {
 	@Override
 	public void stop() {
 		MongoDriver md = MongoDriver.getInstance();
-		Neo4jDriver nd = Neo4jDriver.getInstance();
+		//Neo4jDriver nd = Neo4jDriver.getInstance();
 		md.close();
-		nd.close();
+		//nd.close();
 		Platform.exit();
 	}
 }
