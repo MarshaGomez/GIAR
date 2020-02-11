@@ -1,5 +1,7 @@
 package it.unipi.giar;
+import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,6 +13,7 @@ import weka.core.Attribute;
 import weka.core.DenseInstance;
 import weka.core.Instances;
 import weka.core.SerializationHelper;
+import weka.core.converters.ArffSaver;
 import weka.core.converters.ConverterUtils.DataSource;
 
 
@@ -36,14 +39,14 @@ public class GenrePrediction {
 		genres.add("Simulation");
 		genres.add("Strategy");
 		genres.add("Shooter");
-		genres.add("Sport");
+		genres.add("Sports");
 		genres.add("Racing");
 		genres.add("Educational");
 		genres.add("Fighting");
 		genres.add("BoardGames");
 		
 		createDatasets(genres);
-		createModels(genres);
+		//createModels(genres);
 
 		predictedGenres.add("prova");
 		return predictedGenres;
@@ -101,7 +104,7 @@ public class GenrePrediction {
 			attributes.add(new Attribute("description", true));
 			attributes.add(new Attribute("genre", labels));
 			
-			Instances binTrainDataset = new Instances("Try", attributes, 8000);
+			Instances binTrainDataset = new Instances("Try", attributes, 800);
 			binTrainDataset.setClassIndex(binTrainDataset.numAttributes() - 1);
 			// adding instances
 			String[] values = null;				
@@ -137,7 +140,7 @@ public class GenrePrediction {
 				}			
 			}
 			
-			/*
+			
 			//save in arff files to check on weka the results
 			ArffSaver saver = new ArffSaver();
 			saver.setInstances(binTrainDataset);
@@ -148,8 +151,11 @@ public class GenrePrediction {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			*/
+			
 			vettTrain[z] = binTrainDataset;	//save the db in the dbarray at genre z position	
+			System.out.println("train size");
+			System.out.println(binTrainDataset.size());
+			System.out.println(genre);
 		}
 	}
 	
@@ -425,9 +431,7 @@ public class GenrePrediction {
 				System.out.println("\n");
 				
 			}
-			
-					
-			
+		
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
