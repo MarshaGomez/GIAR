@@ -232,13 +232,13 @@ public class GenrePrediction {
 				vettTrain[foldnum][z] = binTrainDataset;	//save the db in the dbarray at genre z position	
 
 				// retrain the classifier for this binary
-				vettNaive[z].buildClassifier(binTrainDataset);
+				//vettNaive[z].buildClassifier(binTrainDataset);
 				vettSMO[z].buildClassifier(binTrainDataset);
-				vettRandomForest[z].buildClassifier(binTrainDataset);
+				//vettRandomForest[z].buildClassifier(binTrainDataset);
 				
-				testNaive(test,z,genres);
+				//testNaive(test,z,genres);
 				testSMO(test,z,genres);
-				testRandomForest(test,z,genres);
+				//testRandomForest(test,z,genres);
 
 			}
 		} catch (Exception e) {
