@@ -12,6 +12,7 @@ import com.jfoenix.controls.JFXTextField;
 import javax.swing.SwingUtilities;
 
 import it.unipi.giar.GenrePrediction;
+import it.unipi.giar.GenrePredictionImplementation;
 import it.unipi.giar.Data.Game;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -112,6 +113,7 @@ public class AdminInsertGameController {
 
     @FXML
     void predict(ActionEvent event) {
+    	genList.clear();
     	ObservableList<String> genres;
     	String descr = description.getText();	
     	
@@ -121,7 +123,7 @@ public class AdminInsertGameController {
     	//USED TO TEST THE TRAINING, THIS CALL WILL BE REMOVED AT THE END
 		genres = FXCollections.observableArrayList(GenrePrediction.init(descr));
 
-		genresList.setItems(genres);
+		genList.addAll(genres);
 		
     }
     

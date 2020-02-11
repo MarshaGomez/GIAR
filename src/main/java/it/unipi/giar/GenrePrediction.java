@@ -1,18 +1,16 @@
 package it.unipi.giar;
-
-import java.io.File;
-import java.io.IOException;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import weka.classifiers.bayes.NaiveBayes;
+
 import weka.classifiers.bayes.NaiveBayesMultinomialText;
-import weka.classifiers.evaluation.Evaluation;
+
+import weka.classifiers.meta.FilteredClassifier;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
-import weka.core.Instance;
 import weka.core.Instances;
-import weka.core.converters.ArffSaver;
+import weka.core.SerializationHelper;
 import weka.core.converters.ConverterUtils.DataSource;
 
 
@@ -20,6 +18,12 @@ public class GenrePrediction {
 	
 	//String [] names = new String [3];//vector of names
 	static Instances [] vettTrain = new Instances [12];// vector of binary datasets
+	static Instances [] vettTest = new Instances [1];// vector of datasets
+	
+	static int[][] confusionMatrix = new int[12][12];
+	static int[][] confusionMatrixSMO = new int[12][12];
+	static int[][] confusionMatrixRF = new int[12][12];
+	
 	
 	private static List<String> predictedGenres = new ArrayList<>();
 	
@@ -38,11 +42,9 @@ public class GenrePrediction {
 		genres.add("Fighting");
 		genres.add("BoardGames");
 		
-		
 		createDatasets(genres);
 		createModels(genres);
 
-		
 		predictedGenres.add("prova");
 		return predictedGenres;
 	}
@@ -52,7 +54,7 @@ public class GenrePrediction {
 			// Reading Entire Dataset
 			DataSource source;
 			try {
-				source = new DataSource("src/main/resources/dataset.arff");
+				source = new DataSource("src/main/resources/dataset400.arff");
 				Instances data = source.getDataSet();
 			
 			//splittin 80% 20%
@@ -65,6 +67,9 @@ public class GenrePrediction {
 			train.setClassIndex(train.numAttributes() - 1);
 			test.setClassIndex(test.numAttributes() - 1);
 			
+			//TO CHECK
+			vettTest[0]=test;
+			
 			System.out.println("train size");
 			System.out.println(train.size());
 			System.out.println("test size");
@@ -76,10 +81,7 @@ public class GenrePrediction {
 			
 			//CREATION OF 12 BINARY DATATSETS 
 			createBinaryDatasets(genres, numAttributes, numInstances, train);				
-			
-			
-			
-			
+				
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -99,7 +101,7 @@ public class GenrePrediction {
 			attributes.add(new Attribute("description", true));
 			attributes.add(new Attribute("genre", labels));
 			
-			Instances binTrainDataset = new Instances("Try", attributes, 200);
+			Instances binTrainDataset = new Instances("Try", attributes, 8000);
 			binTrainDataset.setClassIndex(binTrainDataset.numAttributes() - 1);
 			// adding instances
 			String[] values = null;				
@@ -157,54 +159,293 @@ public class GenrePrediction {
 		trainNaiveBayesModel(genres);
 		//trainSMOModel(genres);
 		//trainRandomForestModel(genres);
+		
+	}
+	
+	public static void resetMatrix(int[][] mat) {
+		for(int i=0; i<12; i++) {
+			for(int j=0; j<12; j++) {
+				mat[i][j]=0;
+			}
+		}
 	}
 	
 	public static void trainNaiveBayesModel(List<String> genres){
+		
+		resetMatrix(confusionMatrix);
+		
 		try {
 			for(int z = 0; z < genres.size(); z++) {
-				
-				// Reading Entire Dataset
+		
 				DataSource source;
 				source = new DataSource("src/main/resources/"+ genres.get(z) + "_dataset.arff");
-				Instances naiveTrain = source.getDataSet();
+				Instances bintrain = source.getDataSet();	
+
+				
+				 //generating training and test set
+				bintrain.setClassIndex(bintrain.numAttributes() - 1);
 				
 				
-				naiveTrain.setClassIndex(naiveTrain.numAttributes() - 1);
+				 System.out.println(genres.get(z));
+			
 				 // Building the classifier
 				 String[] options = weka.core.Utils.splitOptions("-W -P 0 -M 2.0 -norm 1.0 -lnorm 2.0 -lowercase -stopwords-handler weka.core.stopwords.Rainbow -tokenizer weka.core.tokenizers.AlphabeticTokenizer -stemmer \"weka.core.stemmers.SnowballStemmer -S porter\"");
 				 NaiveBayesMultinomialText naive = new NaiveBayesMultinomialText();
 				 naive.setOptions(options);
-				 naive.buildClassifier(naiveTrain);
+				 naive.buildClassifier(bintrain);
 				 // Evaluation on the training set
-				 Evaluation eval = new Evaluation(naiveTrain);
-				 eval.evaluateModel(naive,naiveTrain);
-				 System.out.println(eval.toSummaryString("Results Training:\n", false));
+				/* Evaluation eval = new Evaluation(bintrain);
+				 eval.evaluateModel(naive,bintrain);
+				 System.out.println(eval.toSummaryString("Results Training:\n", false));*/
 				 
 				 
-				 /*
-				 // Evaluation on the test set
-				 DataSource source2 = new DataSource("/Users/pietroducange/Desktop/irisTest.arff");
-				 Instances test = source2.getDataSet();
+				 SerializationHelper.write(new FileOutputStream("./src/main/resources/models/"+genres.get(z)+".model"), naive);
+				 // Preparation of the unlabeled instances
+				 
+				 Instances test = vettTest[0];
 				 test.setClassIndex(test.numAttributes() - 1);
-				 Evaluation evalTs = new Evaluation(naiveTrain);
-				 evalTs.evaluateModel(naive,test);
-				 System.out.println(evalTs.toSummaryString("Results Test:\n", false));
-				 System.out.println(evalTs.toMatrixString());
-				 System.out.println(evalTs.pctCorrect());
-				*/
+				 Instances unlabeled = new Instances (test);
+				 for (int i = 0; i < test.numInstances();i++){
+					 unlabeled.instance(i).setClassMissing(); 
+				 }
+				 
+				 System.out.println("Unlabeled:\n");
+				 System.out.println(unlabeled);				
 				
+				//Classifying unlabeled instances
+				 System.out.println("\nClassifying instances:\n");
 
+				 for (int i = 0; i < unlabeled.numInstances();i++){
+					 System.out.print("Instance ");
+					 System.out.print(i);
+					 
+					 
+					 String predicted;
+					 String expected;
+					 if(naive.classifyInstance(unlabeled.instance(i)) == 0)
+						 predicted = genres.get(z);
+					 else
+						 predicted = "other";
+					 expected = genres.get((int)test.instance(i).classValue());
+					 
+					 System.out.print("\nEstimated Class: ");
+					 System.out.println(predicted);
+					 System.out.print("Actual Class: ");
+					 System.out.println(expected);
+					 
+					 if (predicted.equals(expected)) {
+						 confusionMatrix[z][z] = confusionMatrix[z][z] +1;
+					 } else if(!predicted.equals(expected) && !predicted.equals("other")) {
+						 confusionMatrix[z][(int)test.instance(i).classValue()] = confusionMatrix[z][(int)test.instance(i).classValue()] +1;
+					 } else {
+						 //confusionMatrix[(int)test.instance(i).classValue()][(int)test.instance(i).classValue()] = confusionMatrix[(int)test.instance(i).classValue()][(int)test.instance(i).classValue()] +1;
+					 }
+				 }
+				 System.out.println(test.size());
+			}	
+			System.out.println("CONFUSION MATRIX \n");
+			
+			for(int i=0; i<12; i++) {
+				for(int j=0; j<12; j++) {
+					System.out.print(confusionMatrix[i][j] + " ");
+				}
+				System.out.println("\n");
 				
 			}
-				
+			
+					
+			
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-					
+	}
+	
+	public static void trainSMOModel(List<String> genres) {
+		resetMatrix(confusionMatrixSMO);
+		try {
+			
+			for(int z = 0; z < genres.size(); z++) {
 		
+				DataSource source;
+				source = new DataSource("src/main/resources/"+ genres.get(z) + "_dataset.arff");
+				Instances bintrain = source.getDataSet();	
+
+				
+				 //generating training and test set
+				bintrain.setClassIndex(bintrain.numAttributes() - 1);
+				
+				
+				 System.out.println(genres.get(z));
+				 
+		 
+				 
+				//define the filtered classifier
+				FilteredClassifier fc = new FilteredClassifier();
+				
+				
+				String[] options = weka.core.Utils.splitOptions("-F \"weka.filters.MultiFilter -F \\\"weka.filters.unsupervised.attribute.StringToWordVector -R 1 -W 1000 -prune-rate -1.0 -I -N 0 -L -stemmer \\\\\\\"weka.core.stemmers.SnowballStemmer -S porter\\\\\\\" -stopwords-handler weka.core.stopwords.Rainbow -M 2 -tokenizer weka.core.tokenizers.AlphabeticTokenizer\\\" -F \\\"weka.filters.supervised.attribute.AttributeSelection -E \\\\\\\"weka.attributeSelection.InfoGainAttributeEval \\\\\\\" -S \\\\\\\"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N -1\\\\\\\"\\\"\" -S 1 -W weka.classifiers.functions.SMO -- -C 1.0 -L 0.001 -P 1.0E-12 -N 0 -V -1 -W 1 -K \"weka.classifiers.functions.supportVector.PolyKernel -E 1.0 -C 250007\" -calibrator \"weka.classifiers.functions.Logistic -R 1.0E-8 -M -1 -num-decimal-places 4\"");
+				fc.setOptions(options);
+				fc.buildClassifier(bintrain);
+					 
+				 
+				 // Preparation of the unlabeled instances
+				 
+				 Instances test = vettTest[0];
+				 test.setClassIndex(test.numAttributes() - 1);
+				 Instances unlabeled = new Instances (test);
+				 for (int i = 0; i < test.numInstances();i++){
+					 unlabeled.instance(i).setClassMissing(); 
+				 }
+				 
+				 System.out.println("Unlabeled:\n");
+				 System.out.println(unlabeled);				
+				
+				//Classifying unlabeled instances
+				 System.out.println("\nClassifying instances:\n");
+
+				 for (int i = 0; i < unlabeled.numInstances();i++){
+					 System.out.print("Instance ");
+					 System.out.print(i);
+					 
+					 
+					 String predicted;
+					 String expected;
+					 if(fc.classifyInstance(unlabeled.instance(i)) == 0)
+						 predicted = genres.get(z);
+					 else
+						 predicted = "other";
+					 expected = genres.get((int)test.instance(i).classValue());
+					 
+					 System.out.print("\nEstimated Class: ");
+					 System.out.println(predicted);
+					 System.out.print("Actual Class: ");
+					 System.out.println(expected);
+					 
+					 if (predicted.equals(expected)) {
+						 confusionMatrixSMO[z][z] = confusionMatrixSMO[z][z] +1;
+					 } else if(!predicted.equals(expected) && !predicted.equals("other")) {
+						 confusionMatrixSMO[z][(int)test.instance(i).classValue()] = confusionMatrixSMO[z][(int)test.instance(i).classValue()] +1;
+					 } else {
+						 //confusionMatrix[(int)test.instance(i).classValue()][(int)test.instance(i).classValue()] = confusionMatrix[(int)test.instance(i).classValue()][(int)test.instance(i).classValue()] +1;
+					 }
+				 }
+				 System.out.println(test.size());
+			}	
+			System.out.println("CONFUSION MATRIX SMO \n");
+			
+			for(int i=0; i<12; i++) {
+				for(int j=0; j<12; j++) {
+					System.out.print(confusionMatrixSMO[i][j] + " ");
+				}
+				System.out.println("\n");
+				
+			}
+			
+					
+			
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		
 	}
+
+	public static void trainRandomForestModel(List<String> genres) {
+		resetMatrix(confusionMatrixRF);
+		try {
+			
+			for(int z = 0; z < genres.size(); z++) {
+		
+				DataSource source;
+				source = new DataSource("src/main/resources/"+ genres.get(z) + "_dataset.arff");
+				Instances bintrain = source.getDataSet();	
+				
+				//generating training and test set
+				bintrain.setClassIndex(bintrain.numAttributes() - 1);
+				
+				System.out.println(genres.get(z));
+				 
+				//define the filtered classifier
+				FilteredClassifier fc = new FilteredClassifier();				
+				String[] options = weka.core.Utils.splitOptions("-F \"weka.filters.MultiFilter -F \\\"weka.filters.unsupervised.attribute.StringToWordVector -R 1 -W 1000 -prune-rate -1.0 -I -N 0 -L -stemmer \\\\\\\"weka.core.stemmers.SnowballStemmer -S porter\\\\\\\" -stopwords-handler weka.core.stopwords.Rainbow -M 2 -tokenizer weka.core.tokenizers.AlphabeticTokenizer\\\" -F \\\"weka.filters.supervised.attribute.AttributeSelection -E \\\\\\\"weka.attributeSelection.InfoGainAttributeEval \\\\\\\" -S \\\\\\\"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N -1\\\\\\\"\\\"\" -S 1 -W weka.classifiers.trees.RandomForest -- -P 100 -I 100 -num-slots 1 -K 0 -M 1.0 -V 0.001 -S 944723357");
+				fc.setOptions(options);
+				fc.buildClassifier(bintrain);
+					 
+				 
+				 // Preparation of the unlabeled instances
+				 
+				 Instances test = vettTest[0];
+				 test.setClassIndex(test.numAttributes() - 1);
+				 Instances unlabeled = new Instances (test);
+				 for (int i = 0; i < test.numInstances();i++){
+					 unlabeled.instance(i).setClassMissing(); 
+				 }
+				 
+				 System.out.println("Unlabeled:\n");
+				 System.out.println(unlabeled);				
+				
+				//Classifying unlabeled instances
+				 System.out.println("\nClassifying instances:\n");
+
+				 for (int i = 0; i < unlabeled.numInstances();i++){
+					 System.out.print("Instance ");
+					 System.out.print(i);
+					 
+					 
+					 String predicted;
+					 String expected;
+					 if(fc.classifyInstance(unlabeled.instance(i)) == 0)
+						 predicted = genres.get(z);
+					 else
+						 predicted = "other";
+					 expected = genres.get((int)test.instance(i).classValue());
+					 
+					 System.out.print("\nEstimated Class: ");
+					 System.out.println(predicted);
+					 System.out.print("Actual Class: ");
+					 System.out.println(expected);
+					 
+					 if (predicted.equals(expected)) {
+						 confusionMatrixRF[z][z] = confusionMatrixRF[z][z] +1;
+					 } else if(!predicted.equals(expected) && !predicted.equals("other")) {
+						 confusionMatrixRF[z][(int)test.instance(i).classValue()] = confusionMatrixRF[z][(int)test.instance(i).classValue()] +1;
+					 } else {
+						 //confusionMatrix[(int)test.instance(i).classValue()][(int)test.instance(i).classValue()] = confusionMatrix[(int)test.instance(i).classValue()][(int)test.instance(i).classValue()] +1;
+					 }
+				 }
+				 System.out.println(test.size());
+			}	
+			System.out.println("CONFUSION MATRIX RANDOM FOREST \n");
+			
+			for(int i=0; i<12; i++) {
+				for(int j=0; j<12; j++) {
+					System.out.print(confusionMatrixRF[i][j] + " ");
+				}
+				System.out.println("\n");
+				
+			}
+			
+					
+			
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 }
