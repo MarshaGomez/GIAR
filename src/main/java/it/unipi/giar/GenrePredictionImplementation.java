@@ -19,7 +19,7 @@ public class GenrePredictionImplementation {
 		genres.add("Simulation");
 		genres.add("Strategy");
 		genres.add("Shooter");
-		genres.add("Sport");
+		genres.add("Sports");
 		genres.add("Racing");
 		genres.add("Educational");
 		genres.add("Fighting");
