@@ -91,7 +91,6 @@ public class GenrePrediction {
 			}
 	}
 	
-	
 	public static void createBinaryDatasets( List<String> genres, int numAttributes, int numInstances, Instances train) {
 		
 		for(int z = 0; z < genres.size(); z++) {	//12 generi			
@@ -158,7 +157,6 @@ public class GenrePrediction {
 			System.out.println(genre);
 		}
 	}
-	
 	
 	public static void createModels(List<String> genres) {	
 		//DOPO VA MESSO IN UN FOR CON LE OPZIONI(?)
