@@ -2,6 +2,7 @@ package it.unipi.giar;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -74,6 +75,7 @@ public class GenrePrediction {
 		resetMatrix(confusionMatrix);
 		
 		createDatasets(genres);
+
 		
 		//esporta tutti  modelli che sono nellarrray dei classificatori
 		for(int z = 0; z < genres.size(); z++) {		
@@ -90,6 +92,7 @@ public class GenrePrediction {
 		}
 		
 		
+
 		return predictedGenres;
 	}
 	
@@ -158,6 +161,7 @@ public class GenrePrediction {
 
 					if(train.instance(j).stringValue(train.numAttributes() - 1).equals(genres.get(z))) {
 						val[1] = 0; 	//val1 prende 
+
 						binTrainDataset.add(new DenseInstance(1.0, val));
 						class_count++;
 					}	
@@ -193,6 +197,7 @@ public class GenrePrediction {
 					}
 				 */
 				
+
 				vettTrain[foldnum][z] = binTrainDataset;	//save the db in the dbarray at genre z position	
 
 				// retrain the classifier for this binary
@@ -203,12 +208,12 @@ public class GenrePrediction {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+
 		}
 
 	}
 	
-	
-	
+
 	public static void test(Instances test, int z, List<String> genres ) {
 		try {
 			Instances unlabeled = new Instances (test);
@@ -431,9 +436,7 @@ public class GenrePrediction {
 				System.out.println("\n");
 				
 			}
-			
-					
-			
+		
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
